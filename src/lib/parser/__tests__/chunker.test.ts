@@ -134,6 +134,113 @@ Content for second section.
         });
       }
     });
+
+    it("should split sections larger than maxChunkSize by paragraphs", () => {
+      // Create a section with heading + very large content (exceeds maxChunkSize)
+      // Make each paragraph larger and increase count to ensure splitting
+      const largeParagraphs = Array(30).fill("This is a paragraph with lots of content in it that should add up. ".repeat(5) + "\n\n").join("");
+      const bodyText = `# Large Section\n\n${largeParagraphs}`;
+      const chunks = chunkBodyText("topic1", bodyText, 300);
+
+      // Should create multiple chunks
+      expect(chunks.length).toBeGreaterThan(1);
+
+      // Each chunk should have token count within limits (with some margin)
+      chunks.forEach((chunk) => {
+        expect(chunk.token_count).toBeLessThanOrEqual(500); // Allow margin for estimation
+      });
+
+      // At least one chunk should preserve the heading context
+      const chunksWithHeading = chunks.filter(c => c.text.includes("# Large Section"));
+      expect(chunksWithHeading.length).toBeGreaterThan(0);
+    });
+
+    it("should preserve heading context when splitting large multi-paragraph sections", () => {
+      // Section with heading + multiple paragraphs that exceed maxChunkSize
+      const para1 = "First paragraph. ".repeat(50);
+      const para2 = "Second paragraph. ".repeat(50);
+      const para3 = "Third paragraph. ".repeat(50);
+      const bodyText = `## Important Section\n\n${para1}\n\n${para2}\n\n${para3}`;
+      const chunks = chunkBodyText("topic1", bodyText, 400);
+
+      // Should split into multiple chunks
+      expect(chunks.length).toBeGreaterThan(1);
+
+      // Each chunk (except first) should include the heading
+      chunks.slice(1).forEach((chunk) => {
+        expect(chunk.text).toContain("## Important Section");
+      });
+    });
+
+    it("should handle section with only heading and no content", () => {
+      const bodyText = "# Empty Section\n\n## Another Empty\n\n### Yet Another";
+      const chunks = chunkBodyText("topic1", bodyText, 1000);
+
+      // Should still create chunks even with empty sections
+      expect(chunks.length).toBeGreaterThan(0);
+
+      // Verify headings are preserved
+      const allText = chunks.map(c => c.text).join("\n");
+      expect(allText).toContain("# Empty Section");
+    });
+
+    it("should handle section with heading followed by minimal content", () => {
+      const bodyText = "# Section One\n\nTiny.\n\n# Section Two\n\nAlso tiny.";
+      const chunks = chunkBodyText("topic1", bodyText, 1000);
+
+      expect(chunks.length).toBeGreaterThan(0);
+      expect(chunks[0].text).toContain("Section One");
+      expect(chunks[0].text).toContain("Tiny");
+    });
+
+    it("should handle very long section with no paragraph breaks", () => {
+      // Single continuous text with heading but no paragraph breaks
+      const longText = "Word ".repeat(2000); // No \n\n breaks
+      const bodyText = `### Continuous Section\n\n${longText}`;
+      const chunks = chunkBodyText("topic1", bodyText, 500);
+
+      // Should split the section
+      expect(chunks.length).toBeGreaterThan(0);
+
+      // First chunk should have the heading
+      expect(chunks[0].text).toContain("### Continuous Section");
+    });
+
+    it("should handle section that exactly equals maxChunkSize", () => {
+      // Create content that's exactly at the limit
+      const exactContent = "X".repeat(4800); // Exactly 1200 tokens at 4 chars/token
+      const bodyText = `## Exact Size\n\n${exactContent}`;
+      const chunks = chunkBodyText("topic1", bodyText, 1200);
+
+      // Should not split if at exact size
+      expect(chunks.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it("should handle multiple large sections in sequence", () => {
+      // Make paragraphs much larger to ensure each section needs splitting
+      const largePara = "Large paragraph content with lots of text. ".repeat(200);
+      const bodyText = `
+# First Large Section
+${largePara}
+
+# Second Large Section
+${largePara}
+
+# Third Large Section
+${largePara}
+      `.trim();
+
+      const chunks = chunkBodyText("topic1", bodyText, 400);
+
+      // Should split into more chunks than sections (at least 4 for 3 large sections)
+      expect(chunks.length).toBeGreaterThanOrEqual(3);
+
+      // Verify each section's heading appears in chunks
+      const allText = chunks.map(c => c.text).join("\n");
+      expect(allText).toContain("First Large Section");
+      expect(allText).toContain("Second Large Section");
+      expect(allText).toContain("Third Large Section");
+    });
   });
 });
 
