@@ -4,7 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a read-only Model Context Protocol (MCP) server that exposes Synergy/DE documentation as tools and resources for AI assistants like Cursor. The server fetches documentation from either online sources (www.synergex.com/docs) or local file systems, parses HTML into structured Topics, chunks content for LLM consumption, and exposes MCP tools for searching and browsing documentation.
+This is a generic, read-only Model Context Protocol (MCP) server that exposes HTML documentation as tools and resources for AI assistants like Cursor. The server fetches documentation from either online sources or local file systems, parses HTML into structured Topics using generic selectors, chunks content for LLM consumption, and exposes MCP tools for searching and browsing documentation.
+
+**Primary use case:** Synergy/DE documentation (www.synergex.com/docs)
+**Generic support:** Works with most HTML-based documentation sites (React, Python, MDN, TypeScript, etc.) through configurable base URLs and generic HTML parsing with fallback selectors.
 
 ## Common Commands
 

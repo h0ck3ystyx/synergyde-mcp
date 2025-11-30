@@ -23,13 +23,29 @@ const DEFAULT_CONFIG: ServerConfig = {
 const VALID_LOG_LEVELS = ["debug", "info", "warn", "error"] as const;
 
 /**
+ * Helper to get env var with deprecation support
+ */
+function getEnvVar(newName: string, oldName: string, defaultValue?: string): string | undefined {
+  const newValue = process.env[newName];
+  const oldValue = process.env[oldName];
+
+  if (oldValue && !newValue) {
+    console.warn(`[DEPRECATED] ${oldName} is deprecated. Please use ${newName} instead.`);
+    return oldValue;
+  }
+
+  return newValue ?? defaultValue;
+}
+
+/**
  * Read and validate configuration from environment variables
  */
 export async function loadConfig(): Promise<ServerConfig> {
-  const docBaseUrl = process.env.SYNERGYDE_DOC_BASE_URL ?? DEFAULT_CONFIG.docBaseUrl;
-  const defaultVersion = process.env.SYNERGYDE_DOC_DEFAULT_VERSION ?? DEFAULT_CONFIG.defaultVersion;
-  const localDocPath = process.env.SYNERGYDE_LOCAL_DOC_PATH;
-  const cacheDir = process.env.SYNERGYDE_CACHE_DIR ?? DEFAULT_CONFIG.cacheDir;
+  // Support both new generic names and old SYNERGYDE_* names for backward compatibility
+  const docBaseUrl = getEnvVar("DOC_BASE_URL", "SYNERGYDE_DOC_BASE_URL", DEFAULT_CONFIG.docBaseUrl)!;
+  const defaultVersion = getEnvVar("DOC_DEFAULT_VERSION", "SYNERGYDE_DOC_DEFAULT_VERSION", DEFAULT_CONFIG.defaultVersion)!;
+  const localDocPath = getEnvVar("DOC_LOCAL_PATH", "SYNERGYDE_LOCAL_DOC_PATH");
+  const cacheDir = getEnvVar("DOC_CACHE_DIR", "SYNERGYDE_CACHE_DIR", DEFAULT_CONFIG.cacheDir)!;
   const logLevel = process.env.LOG_LEVEL ?? DEFAULT_CONFIG.logLevel;
 
   // Validate log level
@@ -41,7 +57,7 @@ export async function loadConfig(): Promise<ServerConfig> {
 
   // Validate URLs
   if (docBaseUrl && !isValidUrl(docBaseUrl)) {
-    throw new Error(`Invalid SYNERGYDE_DOC_BASE_URL: ${docBaseUrl}`);
+    throw new Error(`Invalid DOC_BASE_URL: ${docBaseUrl}`);
   }
 
   // Validate local doc path if provided
@@ -51,7 +67,7 @@ export async function loadConfig(): Promise<ServerConfig> {
       await access(resolvedPath, constants.R_OK);
     } catch (error) {
       throw new Error(
-        `SYNERGYDE_LOCAL_DOC_PATH is not readable or does not exist: ${resolvedPath}. ` +
+        `DOC_LOCAL_PATH is not readable or does not exist: ${resolvedPath}. ` +
         `Error: ${error instanceof Error ? error.message : String(error)}`
       );
     }

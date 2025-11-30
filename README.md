@@ -1,17 +1,22 @@
-# Synergy/DE MCP Server
+# Documentation MCP Server
 
-A read-only Model Context Protocol (MCP) server that exposes Synergy/DE documentation as tools and resources, making it easy to search, retrieve, and browse documentation topics from Cursor and other MCP clients.
+A generic, read-only Model Context Protocol (MCP) server that exposes HTML documentation as tools and resources, making it easy to search, retrieve, and browse documentation topics from Cursor and other MCP clients.
+
+**Primary use case:** Synergy/DE documentation
+**Works with:** Most HTML-based documentation sites (React, Python, MDN, TypeScript, etc.)
 
 ## Features
 
-- **Full-text search** across Synergy/DE documentation with relevance scoring
+- **Full-text search** with TF-IDF relevance scoring
+- **Generic HTML parser** with fallback selectors for common documentation structures
 - **Topic retrieval** with chunked content optimized for LLM consumption
 - **Related topics navigation** (previous, next, parent, and related links)
 - **Section browsing** to discover topics by category
-- **Version support** for different Synergy/DE documentation versions
+- **Version support** for versioned documentation
 - **Intelligent caching** to minimize network requests and improve performance
-- **Online and local** documentation support (hybrid mode available)
-- **MCP Resources** for direct topic and section access in Cursor
+- **Online and local** documentation support (hybrid mode with fallback)
+- **MCP Resources** for direct topic and section access
+- **Works with most documentation sites** - tested with Synergy/DE, adaptable to others
 
 ## Prerequisites
 
@@ -53,36 +58,59 @@ The server can be configured via environment variables. All variables are option
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
-| `SYNERGYDE_DOC_BASE_URL` | Base URL for online documentation | `https://www.synergex.com/docs/` | No |
-| `SYNERGYDE_DOC_DEFAULT_VERSION` | Default documentation version to use | `"latest"` | No |
-| `SYNERGYDE_LOCAL_DOC_PATH` | Path to local documentation directory | (none) | No |
-| `SYNERGYDE_CACHE_DIR` | Directory for caching parsed topics | `./cache` | No |
+| `DOC_BASE_URL` | Base URL for online documentation | `https://www.synergex.com/docs/` | No |
+| `DOC_DEFAULT_VERSION` | Default documentation version to use | `"latest"` | No |
+| `DOC_LOCAL_PATH` | Path to local documentation directory | (none) | No |
+| `DOC_CACHE_DIR` | Directory for caching parsed topics | `./cache` | No |
 | `LOG_LEVEL` | Logging level: `debug`, `info`, `warn`, or `error` | `info` | No |
+
+**Note:** Old `SYNERGYDE_*` environment variable names are still supported for backward compatibility but are deprecated.
 
 ### Configuration Details
 
-- **`SYNERGYDE_DOC_BASE_URL`**: The base URL for the Synergy/DE documentation site. Should end with a trailing slash (automatically added if missing).
+- **`DOC_BASE_URL`**: The base URL for online documentation. Should end with a trailing slash (automatically added if missing).
+  Examples: `https://www.synergex.com/docs/`, `https://docs.python.org/3/`, `https://reactjs.org/docs/`
 
-- **`SYNERGYDE_DOC_DEFAULT_VERSION`**: The default version to use when no version is specified in tool calls. Common values: `"latest"`, `"v111"`, `"v112"`, etc.
+- **`DOC_DEFAULT_VERSION`**: The default version to use when no version is specified. The format depends on the documentation structure.
+  Examples: `"latest"`, `"v111"`, `"3.11"`, `"18.2.0"`
 
-- **`SYNERGYDE_LOCAL_DOC_PATH`**: If provided, enables local documentation support. The path must be readable and point to a directory containing local documentation files. When set, the server operates in "hybrid" mode, preferring local docs but falling back to online docs if a topic isn't found locally.
+- **`DOC_LOCAL_PATH`**: If provided, enables local documentation support. The path must be readable and point to a directory containing HTML documentation files. When set, the server operates in "hybrid" mode, preferring local docs but falling back to online docs if a topic isn't found locally.
+  Examples: `/path/to/synergex-docs`, `/path/to/react-docs`, `/path/to/python-docs`
 
-- **`SYNERGYDE_CACHE_DIR`**: Directory where parsed topics are cached on disk. The directory will be created automatically if it doesn't exist. Cached topics are stored as JSON files keyed by version and topic ID.
+- **`DOC_CACHE_DIR`**: Directory where parsed topics are cached on disk. The directory will be created automatically if it doesn't exist. Cached topics are stored as JSON files keyed by version and topic ID.
 
 - **`LOG_LEVEL`**: Controls the verbosity of logging. Use `debug` for detailed information during development, `info` for normal operation, `warn` for warnings only, or `error` for errors only.
 
-### Example `.env` File
+### Example Configurations
 
+#### Synergy/DE Documentation (Default)
 ```bash
-# Use online documentation with latest version
-SYNERGYDE_DOC_BASE_URL=https://www.synergex.com/docs/
-SYNERGYDE_DOC_DEFAULT_VERSION=latest
-
-# Cache directory (relative to project root)
-SYNERGYDE_CACHE_DIR=./cache
-
-# Logging level
+DOC_BASE_URL=https://www.synergex.com/docs/
+DOC_DEFAULT_VERSION=latest
+DOC_CACHE_DIR=./cache
 LOG_LEVEL=info
+```
+
+#### Python Documentation
+```bash
+DOC_BASE_URL=https://docs.python.org/3/
+DOC_DEFAULT_VERSION=3.11
+DOC_CACHE_DIR=./cache
+```
+
+#### React Documentation (Local)
+```bash
+# Use local copy of React docs
+DOC_LOCAL_PATH=/path/to/react-docs
+DOC_DEFAULT_VERSION=latest
+DOC_CACHE_DIR=./cache
+```
+
+#### MDN Web Docs
+```bash
+DOC_BASE_URL=https://developer.mozilla.org/en-US/docs/Web/
+DOC_DEFAULT_VERSION=latest
+DOC_CACHE_DIR=./cache
 ```
 
 ## Usage

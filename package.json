@@ -1,7 +1,7 @@
 {
   "name": "synergyde-mcp",
   "version": "0.1.0",
-  "description": "MCP server that exposes Synergy/DE documentation as tools and resources",
+  "description": "Generic MCP server for HTML documentation (search, browse, navigate). Tested with Synergy/DE docs, works with most documentation sites.",
   "type": "module",
   "main": "dist/server.js",
   "bin": {
@@ -22,8 +22,13 @@
   "keywords": [
     "mcp",
     "model-context-protocol",
+    "documentation",
+    "docs",
     "synergy",
-    "documentation"
+    "synergyde",
+    "html-parser",
+    "search",
+    "documentation-server"
   ],
   "author": "",
   "license": "MIT",
