@@ -275,26 +275,26 @@ synergyde-mcp/
 
 ---
 
-## Phase 7: MCP Resources
+## Phase 7: MCP Resources ✅
 
 ### 7.1 Topic Resource
-- [ ] Register resource handler in server
-- [ ] URI scheme: `synergyde:topic/{topic_id}`
-- [ ] Implementation:
+- [x] Register resource handler in server
+- [x] URI scheme: `synergyde:topic/{topic_id}`
+- [x] Implementation:
   - Fetch topic (use cache)
   - Return plain text (first N chunks or concatenated) while respecting the ~8k-token cap
   - Include metadata (title, section, version, url, path, source)
   - Return standardized error payloads on failure
-- [ ] Support version in URI if needed: `synergyde:topic/{version}/{topic_id}`
+- [x] Support version in URI if needed: `synergyde:topic/{version}/{topic_id}`
 
 ### 7.2 Section Resource
-- [ ] Register resource handler in server
-- [ ] URI scheme: `synergyde:section/{version}/{section}`
-- [ ] Implementation:
+- [x] Register resource handler in server
+- [x] URI scheme: `synergyde:section/{version}/{section}`
+- [x] Implementation:
   - List topics in section
   - Return index format (titles + URLs + summaries) with total counts/pagination hints while respecting the token budget
   - Return standardized error payloads when sections are missing/empty or downstream calls fail
-- [ ] Format as structured text suitable for LLM context
+- [x] Format as structured text suitable for LLM context
 
 ---
 

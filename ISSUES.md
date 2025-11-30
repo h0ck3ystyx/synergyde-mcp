@@ -101,3 +101,40 @@
 
 ---
 
+### Issue #10: Topic Resource URI Mis-parses Hierarchical Topic IDs ✅
+**Severity**: High  
+**File**: `src/resources/topic-resource.ts` (lines 108-127)  
+**Description**: The regex blindly treats the first path segment after `synergyde:topic/` as a version and the remainder as the topic id. Real topic ids are hierarchical paths like `Language/Reference/statements.htm`, so a request such as `synergyde:topic/Language/Reference/statements.htm` (intended to use the default version) is interpreted as `version="Language"` and `topic_id="Reference/statements.htm"`. The downstream fetch therefore looks up a non-existent version called "Language" and the resource is unusable unless you redundantly prefix the topic id with the version every time.
+
+**Fix**: Use a parsing scheme that can distinguish "no version supplied" even when the topic id contains slashes (e.g., reserve a separator like `::`, double slash, or explicit `version=` query parameter).
+
+**Status**: ✅ Fixed - Implemented smart parsing that:
+  - Supports double slash separator (`synergyde:topic//{topic_id}`) for explicit no version
+  - Checks if first segment looks like a version (matches `/^(v\d+|latest)$/i`)
+  - If first segment looks like a version, uses it; otherwise treats entire path as topic_id
+  - Handles hierarchical topic IDs correctly
+
+---
+
+### Issue #11: Topic Resource Never Gets Full Content ✅
+**Severity**: High  
+**File**: `src/resources/topic-resource.ts` (lines 124-141)  
+**Description**: Calls `getTopic` without overriding `max_chunks`, so the resource always inherits the tool default of 3 chunks. Phase 7 requires resources to expose up to ~8k tokens, but the resource handler never requests the full chunk list, so most of the topic body never makes it into the MCP resource even though `formatTopicAsText` tries to enforce the 8k budget later.
+
+**Fix**: Pass `max_chunks: 0` (or convert the chunk count to a suitable token budget) so resources can include complete content before trimming to the token cap.
+
+**Status**: ✅ Fixed - Pass `max_chunks: 0` to `getTopic` to get all chunks. The resource formatter then handles token budget limiting using `limitChunks()`.
+
+---
+
+### Issue #12: Resource Handlers Don't Decode URI Components ✅
+**Severity**: Medium  
+**File**: `src/resources/topic-resource.ts` (lines 108-131), `src/resources/section-resource.ts` (lines 84-117)  
+**Description**: Neither resource decodes URI components before handing them to the provider/tool. Section names such as "General Guides" or "Data Access and Connectivity" must be percent-encoded in an MCP URI, but the handler forwards the literal encoded string (`General%20Guides`) to `listSectionTopics`, which will never match the provider's real section names. The same issue affects topic ids for any path that contains spaces or other encoded characters.
+
+**Fix**: Decode the captured URI parts using `decodeURIComponent()` before invoking the tools/providers so that human-readable section/topic names actually resolve.
+
+**Status**: ✅ Fixed - Added `decodeURIComponent()` calls for both version and topic_id/section in both resource handlers. Percent-encoded section names and topic IDs are now properly decoded before being passed to tools/providers.
+
+---
+

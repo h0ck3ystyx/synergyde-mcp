@@ -128,6 +128,7 @@ export async function getTopic(
     }
 
     // Limit chunks if requested (use slice for chunk count, not token budget)
+    // maxChunks === 0 means no limit (get all chunks)
     if (maxChunks > 0 && topic.body_chunks.length > maxChunks) {
       topic = {
         ...topic,
