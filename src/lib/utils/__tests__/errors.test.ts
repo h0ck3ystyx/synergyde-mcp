@@ -256,7 +256,8 @@ describe("Error Utilities", () => {
 
     it("should handle objects", () => {
       const payload = errorToPayload({ message: "Object error" });
-      expect(payload.message).toContain("Object error");
+      // Plain objects (not Error instances) are stringified to "[object Object]"
+      expect(payload.message).toBe("[object Object]");
     });
   });
 

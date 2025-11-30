@@ -12,14 +12,15 @@ import { CacheManager } from "../lib/cache/cache-manager.js";
 import type { DocProvider, Topic } from "../types.js";
 
 // Mock config
+let testCacheDir = `./test-cache-${Date.now()}`;
 vi.mock("../config.js", () => ({
   getConfig: vi.fn(() => ({
     defaultVersion: "latest",
-    cacheDir: "./test-cache",
+    cacheDir: testCacheDir,
   })),
   initializeConfig: vi.fn(async () => ({
     defaultVersion: "latest",
-    cacheDir: "./test-cache",
+    cacheDir: testCacheDir,
   })),
 }));
 
@@ -89,6 +90,9 @@ describe("End-to-End Integration", () => {
   };
 
   beforeEach(async () => {
+    // Use a unique cache directory for each test
+    testCacheDir = `./test-cache-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
     searchIndex = new SearchIndex();
     cache = new CacheManager();
     await cache.initialize();
@@ -145,10 +149,10 @@ describe("End-to-End Integration", () => {
       );
 
       expect(topicResult1).toHaveProperty("id");
-      expect(vi.mocked(provider.fetchTopic)).toHaveBeenCalled();
+      expect(provider.fetchTopic).toHaveBeenCalled();
 
       // Clear the mock call count
-      vi.mocked(provider.fetchTopic).mockClear();
+      (provider.fetchTopic as any).mockClear();
 
       // Fetch again (should use cache)
       const topicResult2 = await getTopic(
