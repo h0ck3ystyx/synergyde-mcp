@@ -35,3 +35,36 @@
 
 ---
 
+### Issue #4: Index Key Collisions Across Versions ✅
+**Severity**: High  
+**File**: `src/lib/search/index.ts` (lines 24-44), `src/lib/providers/online-provider.ts` (lines 157-169)  
+**Description**: SearchIndex stores each topic by `topic.id`, and OnlineProvider explicitly sets that id to the caller-supplied `urlOrId`, which for relative lookups is just the path segment without versioning. If you fetch `/language/topic.htm` for v111 and later for v112, the second `addTopic` overwrites the first in the Map, leaving only one copy in the index. As a result, searching with `version: "v111"` will never return anything once another version of the same topic gets indexed.
+
+**Fix**: Include the resolved version in the index key (e.g., `${topic.version}:${topic.id}`) or store a nested map keyed by version to keep versions isolated.
+
+**Status**: ✅ Fixed - Changed index key from `topic.id` to `${topic.version}:${topic.id}` to prevent collisions. Added comprehensive tests to verify version isolation.
+
+---
+
+### Issue #5: Limit Parameter Ignores Zero/Negative Values ✅
+**Severity**: Medium  
+**File**: `src/lib/search/index.ts` (lines 103-106)  
+**Description**: The guard `if (limit !== undefined && limit > 0)` means passing `limit: 0` (a common pattern to ask "give me zero results but report metadata") returns the full result set, and negative limits behave the same. Enforce the caller's request by clamping values < 0 to 0 (return []) and treating 0 as an empty result instead of the unbounded branch.
+
+**Fix**: Handle `limit === 0` explicitly to return empty array, and clamp negative values to 0.
+
+**Status**: ✅ Fixed - Updated limit handling to explicitly return empty array when limit is 0, and clamp negative values to 0. Added tests to verify this behavior.
+
+---
+
+### Issue #6: Tokenization Drops Meaning-Critical Symbols ✅
+**Severity**: Medium  
+**File**: `src/lib/search/index.ts` (lines 165-170)  
+**Description**: Stripping everything that is not `[A-Za-z0-9_]` turns "C++", "C#", ".NET", "XFILENAME.DBR", etc. into meaningless tokens ("c" or "net"), so users cannot search for the actual terms that appear verbatim throughout the Synergy docs.
+
+**Fix**: Update the tokenizer to keep language/significant symbols (at least +, #, ., /) or normalize them into canonical replacements (e.g., map C++ → c-plus-plus) so queries for these topics produce usable matches.
+
+**Status**: ✅ Fixed - Updated tokenizer to normalize programming language symbols: C++ → c-plus-plus, C# → c-sharp, .NET → dot-net. Dots and forward slashes are converted to spaces for better tokenization. Added tests to verify programming language name preservation.
+
+---
+

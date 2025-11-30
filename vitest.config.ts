@@ -12,6 +12,7 @@ export default defineConfig({
         "src/lib/providers/**/*.ts",
         "src/lib/parser/**/*.ts",
         "src/lib/cache/**/*.ts",
+        "src/lib/search/**/*.ts",
       ],
       exclude: [
         "node_modules/",

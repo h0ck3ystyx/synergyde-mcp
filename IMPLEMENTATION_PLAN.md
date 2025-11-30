@@ -185,21 +185,21 @@ synergyde-mcp/
 
 ---
 
-## Phase 5: Search and Indexing
+## Phase 5: Search and Indexing ✅
 
 ### 5.1 Search Index
-- [ ] Create `src/lib/search/index.ts`
-- [ ] Implement in-memory search index:
+- [x] Create `src/lib/search/index.ts`
+- [x] Implement in-memory search index:
   - Index fields: title, summary, body_text
   - Simple TF-IDF or term frequency scoring
   - Support filtering by version and section
-- [ ] Build index lazily (on first search or on startup)
-- [ ] Index topics as they are fetched/cached
-- [ ] Support:
+- [x] Build index lazily (on first search or on startup)
+- [x] Index topics as they are fetched/cached
+- [x] Support:
   - `search(query: string, version?: string, section?: string, limit?: number): Promise<SearchResult[]>`
   - `addTopic(topic: Topic): void`
   - `clear(): void`
-- [ ] Return ranked results with relevance scores
+- [x] Return ranked results with relevance scores
 
 ### 5.2 Index Persistence (Optional Enhancement)
 - [ ] Consider persisting index metadata to disk for faster startup
