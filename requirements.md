@@ -201,6 +201,7 @@ Performance and rate limiting:
 - If a topic cannot be fetched/parsing fails, return a structured error to the MCP client with a brief message and suggest trying a simpler query or a different version.  
 - If the user requests a non‑existent version or section, surface allowed values from describe_docs.  
 - If the network is unavailable and no local docs are configured, the server should return a clear error message indicating that online docs are unreachable.  
+- Follow test-driven development where feasible: write or update failing unit tests before implementing provider/search/parsing features, and maintain ≥80% statement coverage across the codebase (measured via Vitest/Jest coverage reports). Document coverage targets in CI.
 
 ## Usage Patterns in Cursor
 

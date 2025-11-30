@@ -13,8 +13,10 @@
     "start": "node dist/server.js",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
-    "test": "vitest",
+    "test": "vitest --coverage",
     "test:watch": "vitest --watch",
+    "test:no-coverage": "vitest",
+    "test:coverage": "vitest --coverage",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [
@@ -30,9 +32,11 @@
     "cheerio": "^1.0.0"
   },
   "devDependencies": {
+    "@types/cheerio": "^0.22.35",
     "@types/node": "^20.11.0",
     "@typescript-eslint/eslint-plugin": "^6.19.0",
     "@typescript-eslint/parser": "^6.19.0",
+    "@vitest/coverage-v8": "^1.6.1",
     "eslint": "^8.56.0",
     "typescript": "^5.3.3",
     "vitest": "^1.2.0"
@@ -41,4 +45,3 @@
     "node": ">=18.0.0"
   }
 }
-

@@ -123,6 +123,15 @@ synergyde-mcp/
 - [ ] Confirm robots.txt allows the targeted paths and document any disallowed areas
 - [ ] Update parser/search requirements if selectors differ; store findings with screenshots/notes for future contributors
 
+### Phase 2a: Provider Unit Tests & Coverage
+- [ ] Adopt TDD for provider behaviors: write failing tests for Local/Online/Hybrid providers before implementing fixes/features
+- [ ] Cover LocalProvider path resolution, version-aware lookups, and error scenarios
+- [ ] Cover OnlineProvider rate limiting, caching, and error propagation (mock fetch)
+- [ ] Cover Hybrid provider precedence (Local → Online fallback, provenance logging)
+- [ ] Add tests for discovery utilities once HTML parsing is available (mock provider responses)
+- [ ] Configure Vitest coverage reporting (e.g., `npm run test -- --coverage`) targeting ≥80% statement coverage for provider modules
+- [ ] Document how to run tests and interpret coverage in README/CONTRIBUTING
+
 ---
 
 ## Phase 3: HTML Parsing and Processing

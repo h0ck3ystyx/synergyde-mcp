@@ -90,6 +90,14 @@ function isValidUrl(urlString: string): boolean {
 let cachedConfig: ServerConfig | null = null;
 
 /**
+ * Set cached config directly (for testing only)
+ * @internal
+ */
+export function _setCachedConfigForTesting(config: ServerConfig | null): void {
+  cachedConfig = config;
+}
+
+/**
  * Get the server configuration, loading it if necessary
  * 
  * Note: This is a synchronous wrapper that assumes config has been loaded.

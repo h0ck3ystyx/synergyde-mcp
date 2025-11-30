@@ -5,6 +5,7 @@
  */
 
 import { initializeConfig } from "./config.js";
+import { createProvider } from "./lib/providers/index.js";
 import { logger } from "./lib/utils/logger.js";
 
 /**
@@ -17,6 +18,12 @@ async function main(): Promise<void> {
       version: "0.1.0",
       defaultVersion: config.defaultVersion,
       source: config.localDocPath ? "hybrid" : "online",
+    });
+
+    // Initialize provider (Phase 2)
+    const provider = createProvider();
+    logger.info("Provider initialized", {
+      source: provider.getSource(),
     });
 
     // TODO: Initialize MCP server with stdio transport (Phase 8)
