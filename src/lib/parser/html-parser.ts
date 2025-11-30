@@ -433,8 +433,8 @@ export function parseHtml(html: string, options: ParseOptions): Topic {
         version: options.version,
       }
     );
-    const err = new Error(errorPayload.message);
-    (err as any).payload = errorPayload;
+    const err = new Error(errorPayload.message) as Error & { payload: typeof errorPayload };
+    err.payload = errorPayload;
     throw err;
   }
 }

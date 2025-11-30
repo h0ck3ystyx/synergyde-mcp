@@ -55,9 +55,7 @@ export async function getRelatedTopics(
       related: [],
     };
 
-    let linksInspected = 0;
     for (const link of topic.links) {
-      linksInspected++;
       
       switch (link.type) {
         case "parent":

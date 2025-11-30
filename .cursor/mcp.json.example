@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "synergyde-docs": {
+      "command": "node",
+      "args": ["/absolute/path/to/synergyde-mcp/dist/server.js"],
+      "env": {
+        "SYNERGYDE_DOC_BASE_URL": "https://www.synergex.com/docs/",
+        "SYNERGYDE_DOC_DEFAULT_VERSION": "latest",
+        "SYNERGYDE_CACHE_DIR": "./cache",
+        "LOG_LEVEL": "info"
+      }
+    }
+  }
+}
+

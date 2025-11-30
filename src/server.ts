@@ -40,7 +40,7 @@ function throwMcpError(error: ErrorPayload): never {
     INTERNAL_ERROR: -32603, // Internal error
   };
 
-  const mcpError: any = new Error(error.message);
+  const mcpError = new Error(error.message) as Error & { code: number; data?: unknown };
   mcpError.code = codeMap[error.code] || -32603;
   mcpError.data = error.details;
   throw mcpError;

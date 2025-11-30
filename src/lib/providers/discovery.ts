@@ -9,6 +9,7 @@ import { readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import * as cheerio from "cheerio";
 
+import { getConfig } from "../../config.js";
 import { OnlineProvider } from "./online-provider.js";
 import { logger } from "../utils/logger.js";
 
@@ -64,8 +65,9 @@ export async function discoverTopic(
   version?: string
 ): Promise<DiscoveryResult> {
   try {
-    // Build URL
-    const baseUrl = (provider as any).baseUrl || "https://www.synergex.com/docs/";
+    // Build URL - use getConfig for baseUrl and defaultVersion
+    const config = getConfig();
+    const baseUrl = config.docBaseUrl;
     let url: string;
     
     if (urlOrId.startsWith("http://") || urlOrId.startsWith("https://")) {
@@ -73,7 +75,7 @@ export async function discoverTopic(
     } else if (urlOrId.startsWith("/")) {
       url = `${baseUrl.replace(/\/$/, "")}${urlOrId}`;
     } else {
-      const resolvedVersion = version || (provider as any).defaultVersion || "latest";
+      const resolvedVersion = version || config.defaultVersion;
       if (resolvedVersion === "latest") {
         url = `${baseUrl}${urlOrId}`;
       } else {

@@ -172,7 +172,7 @@ export class SearchIndex {
     
     // Normalize important programming language symbols before tokenization
     // This preserves meaning for searches like "C++", "C#", ".NET", etc.
-    let normalized = lower
+    const normalized = lower
       .replace(/c\+\+/g, "c-plus-plus") // C++ → c-plus-plus
       .replace(/c#/g, "c-sharp") // C# → c-sharp
       .replace(/\.net/g, "dot-net") // .NET → dot-net

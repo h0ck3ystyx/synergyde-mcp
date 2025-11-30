@@ -82,7 +82,7 @@ export async function handleSectionResource(
     logger.debug("Handling section resource", { uri });
 
     // Parse URI: synergyde:section/{version}/{section}
-    const uriMatch = uri.match(/^synergyde:section\/([^\/]+)\/(.+)$/);
+    const uriMatch = uri.match(/^synergyde:section\/([^/]+)\/(.+)$/);
     if (!uriMatch) {
       return {
         code: "INVALID_INPUT",

@@ -192,7 +192,7 @@ export class CacheManager {
   private sanitizeTopicId(topicId: string): string {
     // Replace forward slashes with underscores
     // Also replace other filesystem-unsafe characters
-    return topicId.replace(/[\/\\:*?"<>|]/g, "_");
+    return topicId.replace(/[/\\:*?"<>|]/g, "_");
   }
 
   /**
