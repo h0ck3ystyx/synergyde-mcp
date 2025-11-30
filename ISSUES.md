@@ -138,3 +138,62 @@
 
 ---
 
+### Issue #13: Server Never Actually Starts MCP Server ✅
+**Severity**: High  
+**File**: `src/server.ts` (lines 1-44)  
+**Description**: Phase 8 calls for a stdio transport plus registration of the tools/resources, but `main()` only loads config, instantiates a provider, logs, and then `process.stdin.resume()`. No `@modelcontextprotocol/sdk` server is created, no transport is bound, and none of the tool/resource handlers are registered. Running `node dist/server.js` would therefore sit idle and never answer MCP requests.
+
+**Fix**: Implement full MCP server initialization:
+- Create `McpServer` instance from `@modelcontextprotocol/sdk/server/mcp.js`
+- Register all 5 tools with proper Zod schemas
+- Register topic and section resources
+- Connect to `StdioServerTransport`
+- Ensure server actually listens for MCP requests
+
+**Status**: ✅ Fixed - Implemented full MCP server with:
+- `McpServer` instance creation
+- All 5 tools registered with Zod schemas (`search_docs`, `get_topic`, `get_related_topics`, `list_section_topics`, `describe_docs`)
+- Topic and section resources registered
+- `StdioServerTransport` connection
+- Server now properly listens for MCP requests
+
+---
+
+### Issue #14: Phase 5-7 Modules Not Wired Up ✅
+**Severity**: High  
+**File**: `src/server.ts`  
+**Description**: Because the entry point is still a stub, none of the Phase 5-7 modules get wired up. There is no `CacheManager` initialization, no `SearchIndex` instantiation, and no way for `getTopic`, `searchDocs`, `handleTopicResource`, etc. to be invoked. Even if an MCP client connected manually, there are no tool definitions or resource handlers exported to it, so every MCP call would fail.
+
+**Fix**: Initialize all required components:
+- Initialize `CacheManager` and call `await cache.initialize()`
+- Create `SearchIndex` instance
+- Wire up all tool handlers to use these components
+- Ensure resource handlers have access to cache and provider
+
+**Status**: ✅ Fixed - All components properly initialized:
+- `CacheManager` created and initialized
+- `SearchIndex` instantiated (lazy population)
+- All tool handlers wired to use cache, provider, and search index
+- Resource handlers have access to cache and provider
+- All tools and resources properly registered with MCP server
+
+---
+
+### Issue #15: Missing Lifecycle Management ✅
+**Severity**: Medium  
+**File**: `src/server.ts`  
+**Description**: The "server" doesn't handle lifecycle concerns at all: there is no graceful shutdown hook, no error surface (everything just logs then `process.stdin.resume()`), and no validation that `createProvider()` succeeded beyond a log line. Once the MCP server is implemented, these might need refinement, but as-is the process can't even be tested end-to-end because nothing listens for requests.
+
+**Fix**: Add proper lifecycle management:
+- Implement graceful shutdown handlers for SIGINT/SIGTERM
+- Add proper error handling that exits with appropriate codes
+- Validate provider initialization and fail fast if it fails
+- Ensure server cleanup on shutdown
+
+**Status**: ✅ Fixed - Lifecycle management implemented:
+- Graceful shutdown handlers for SIGINT/SIGTERM
+- Proper error handling with `process.exit(1)` on failures
+- Provider validation (throws error if `createProvider()` returns null/undefined)
+- Server cleanup via `server.close()` on shutdown
+- All errors properly logged before exit
+
