@@ -2,10 +2,13 @@
  * Local documentation provider that reads from the file system
  */
 
+import * as cheerio from "cheerio";
 import { readFile, readdir, stat } from "node:fs/promises";
 import { join, resolve, extname, basename } from "node:path";
 
 import { getConfig } from "../../config.js";
+import { chunkBodyText } from "../parser/chunker.js";
+import { extractBodyText, parseHtml } from "../parser/html-parser.js";
 import { providerError } from "../utils/errors.js";
 import { logger } from "../utils/logger.js";
 import { BaseDocProvider } from "./provider.js";
@@ -143,25 +146,29 @@ export class LocalProvider extends BaseDocProvider {
     }
 
     try {
-      await this.readHtmlFile(filePath); // Read HTML (will be parsed in Phase 3)
+      // Read HTML file
+      const html = await this.readHtmlFile(filePath);
       
-      // Return a minimal Topic structure - actual parsing will be done in Phase 3
-      const topic: Topic = {
-        id: urlOrId,
-        version: version ?? "local",
-        title: basename(filePath, extname(filePath)), // Will be parsed from HTML in Phase 3
-        section: "Unknown", // Will be parsed from HTML in Phase 3
-        path: [], // Will be parsed from HTML in Phase 3
-        summary: "", // Will be parsed from HTML in Phase 3
-        body_chunks: [], // Will be parsed from HTML in Phase 3
-        links: [], // Will be parsed from HTML in Phase 3
+      // Parse HTML into Topic structure
+      const $ = cheerio.load(html);
+      const topic = parseHtml(html, {
         url: filePath,
-        source: this.source,
-      };
+        version: version ?? "local",
+        source: this.source === "hybrid" ? "local" : this.source,
+      });
 
-      logger.debug("Fetched topic from local provider", {
+      // Override topic ID with the original topicId (not normalized from file path)
+      topic.id = urlOrId;
+
+      // Extract body text and chunk it
+      const bodyText = extractBodyText($);
+      topic.body_chunks = chunkBodyText(topic.id, bodyText);
+
+      logger.debug("Fetched and parsed topic from local provider", {
         topic_id: urlOrId,
         file_path: filePath,
+        title: topic.title,
+        chunk_count: topic.body_chunks.length,
       });
 
       return topic;

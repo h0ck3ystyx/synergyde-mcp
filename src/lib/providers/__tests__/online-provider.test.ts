@@ -32,6 +32,7 @@ vi.mock("../../utils/logger.js", () => ({
     error: vi.fn(),
     logHttpFetch: vi.fn(),
     logCacheOperation: vi.fn(),
+    logParsing: vi.fn(),
   },
 }));
 

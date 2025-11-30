@@ -8,7 +8,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
-      include: ["src/lib/providers/**/*.ts"],
+      include: ["src/lib/providers/**/*.ts", "src/lib/parser/**/*.ts"],
       exclude: [
         "node_modules/",
         "dist/",
@@ -17,7 +17,7 @@ export default defineConfig({
         "**/types.ts",
         "**/index.ts",
         "**/__tests__/**",
-        "**/discovery.ts", // Discovery tests will be added in Phase 3
+        "**/discovery.ts", // Discovery tests will be added later
       ],
       thresholds: {
         lines: 80,

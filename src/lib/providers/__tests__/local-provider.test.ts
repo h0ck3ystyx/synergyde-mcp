@@ -27,15 +27,40 @@ import { resolve, join } from "node:path";
 import { LocalProvider } from "../local-provider.js";
 import { providerError } from "../../utils/errors.js";
 
-// Mock logger
+// Mock logger - must be before parser imports
 vi.mock("../../utils/logger.js", () => ({
   logger: {
     debug: vi.fn(),
     info: vi.fn(),
     warn: vi.fn(),
     error: vi.fn(),
+    logParsing: vi.fn(),
   },
 }));
+
+// Mock parser module to avoid logger issues
+vi.mock("../parser/html-parser.js", async () => {
+  const actual = await vi.importActual("../parser/html-parser.js");
+  return {
+    ...actual,
+    parseHtml: vi.fn((html: string, options: any) => {
+      // Return a mock topic
+      return {
+        id: options.url.split("/").pop() || "topic",
+        version: options.version || "local",
+        title: "Test Topic",
+        section: "Test Section",
+        path: [],
+        summary: "Test summary",
+        body_chunks: [],
+        links: [],
+        url: options.url,
+        source: options.source,
+      };
+    }),
+    extractBodyText: vi.fn(() => "Test body text"),
+  };
+});
 
 describe("LocalProvider", () => {
   const mockLocalPath = "/test/docs";

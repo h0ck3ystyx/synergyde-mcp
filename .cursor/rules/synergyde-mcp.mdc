@@ -1,0 +1,44 @@
+---
+alwaysApply: true
+---
+
+{
+  "name": "SynergyDE MCP server",
+  "description": "Rules for building and maintaining a Node.js MCP server that exposes Synergy/DE documentation over stdio.",
+  "patterns": [
+    "/*.ts",
+    "/.tsx",
+    "**/.js",
+    "package.json",
+    "tsconfig.json",
+    ".cursor/mcp.json",
+    "README.md"
+  ],
+  "priority": "high",
+  "alwaysActive": true,
+  "instructions": [
+    "This project is a Node.js Model Context Protocol (MCP) server that exposes Synergy/DE documentation as tools and resources over stdio.",
+    "Use modern TypeScript or modern JavaScript with ES modules. Prefer TypeScript where possible.",
+    "Use the official MCP SDK for Node.js (for example '@modelcontextprotocol/sdk') and follow typical patterns: create a server instance, define tools with JSON schema, and use stdio transport.",
+    "The server should be read-only and must not attempt to modify any remote Synergex resources.",
+    "Implement tools with the following approximate shapes: 'search_docs', 'get_topic', 'get_related_topics', 'list_section_topics', and 'describe_docs'. Each tool should have clear input JSON schema and explicit output structure, suitable for LLM consumption.",
+    "When defining tool schemas, be explicit about required fields and types. Use descriptive 'description' strings so the AI knows when to call a tool.",
+    "Implement a 'DocProvider' abstraction that can support both online docs (via HTTP requests to the Synergy/DE docs site) and optional local docs from the file system.",
+    "When working with online documentation, respect the existing site structure under the public Synergy/DE docs URLs (for example versioned paths under the docs root) and avoid relying on private APIs. Keep HTTP access read-only.",
+    "Design the internal model around 'Topic' and 'TopicChunk' entities with fields such as 'id', 'version', 'title', 'section', 'path', 'summary', 'body_chunks', and 'links'. Use small, LLM-friendly text chunks.",
+    "Implement a simple search index over topics (title, summary, body text). A straightforward in-memory search (e.g., basic scoring by term frequency) is sufficient unless more is explicitly requested.",
+    "Implement caching of fetched and parsed topics on disk (for example in a cache directory), keyed by version and topic ID, to avoid repeated network calls.",
+    "Implement robust HTML parsing for the docs: strip headers/footers/navigation, keep the main content, and convert it to plain text while preserving headings and important structure where possible. Avoid copying any styling or scripts.",
+    "Split long documentation topics into multiple 'TopicChunk' objects based on headings and reasonable character/token limits suitable for LLM context windows.",
+    "When adding or editing tools, keep them idempotent and deterministic: given the same arguments and docs version, the result should be stable.",
+    "All tools must validate inputs defensively and return structured error objects on invalid parameters, missing topics, or network failures. Do not throw unhandled exceptions.",
+    "Use environment variables for configuration such as 'SYNERGYDE_DOC_BASE_URL', 'SYNERGYDE_DOC_DEFAULT_VERSION', 'SYNERGYDE_LOCAL_DOC_PATH', and 'SYNERGYDE_CACHE_DIR'. Provide sane defaults when reasonable.",
+    "Ensure the MCP server can be launched via a simple Node.js command (for example 'node dist/server.js') so it can be referenced from Cursor's MCP configuration.",
+    "When Cursor asks for setup scripts, generate a minimal but complete Node.js project: package.json, tsconfig.json (if TypeScript), src/server.ts, and any necessary src/lib/* modules for providers, parsing, and search.",
+    "Prefer small, composable modules instead of large monolithic files. Group related logic (providers, parsing, search, tools registration) into separate files.",
+    "Write clean, strongly typed function signatures and avoid using 'any' in TypeScript unless absolutely necessary.",
+    "Add operational logging at a debug level for tool invocations, HTTP fetches, cache hits/misses, and parsing errors. Logging should be optional and controllable via environment variables.",
+    "When adding tests, prefer lightweight unit tests for core parsing and search logic. Focus on deterministic behavior over full end-to-end tests.",
+    "Aim for clarity and maintainability over micro-optimizations. The primary goal is reliable, predictable behavior in Cursor."
+  ]
+}

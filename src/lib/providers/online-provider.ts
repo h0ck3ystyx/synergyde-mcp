@@ -2,7 +2,10 @@
  * Online documentation provider that fetches from Synergy/DE docs website
  */
 
+import * as cheerio from "cheerio";
 import { getConfig } from "../../config.js";
+import { chunkBodyText } from "../parser/chunker.js";
+import { extractBodyText, parseHtml } from "../parser/html-parser.js";
 import { networkError, providerError } from "../utils/errors.js";
 import { logger } from "../utils/logger.js";
 import { RateLimiter } from "../utils/rate-limiter.js";
@@ -146,28 +149,30 @@ export class OnlineProvider extends BaseDocProvider {
     const url = this.buildTopicUrl(urlOrId, resolvedVersion);
 
     try {
-      await this.fetchHtml(url); // Fetch HTML (will be parsed in Phase 3)
+      // Fetch HTML
+      const html = await this.fetchHtml(url);
       
-      // Return a minimal Topic structure - actual parsing will be done in Phase 3
-      // For now, we return a placeholder structure
-      // This will be replaced with proper HTML parsing in Phase 3
-      const topic: Topic = {
-        id: urlOrId,
-        version: resolvedVersion,
-        title: "Untitled", // Will be parsed from HTML in Phase 3
-        section: "Unknown", // Will be parsed from HTML in Phase 3
-        path: [], // Will be parsed from HTML in Phase 3
-        summary: "", // Will be parsed from HTML in Phase 3
-        body_chunks: [], // Will be parsed from HTML in Phase 3
-        links: [], // Will be parsed from HTML in Phase 3
+      // Parse HTML into Topic structure
+      const $ = cheerio.load(html);
+      const topic = parseHtml(html, {
         url,
-        source: this.source,
-      };
+        version: resolvedVersion,
+        source: this.source === "hybrid" ? "online" : this.source,
+      });
 
-      logger.debug("Fetched topic from online provider", {
-        topic_id: urlOrId,
+      // Override topic ID with the original topicId (not normalized from URL)
+      topic.id = urlOrId;
+
+      // Extract body text and chunk it
+      const bodyText = extractBodyText($);
+      topic.body_chunks = chunkBodyText(topic.id, bodyText);
+
+      logger.debug("Fetched and parsed topic from online provider", {
+        topic_id: topic.id,
         version: resolvedVersion,
         url,
+        title: topic.title,
+        chunk_count: topic.body_chunks.length,
       });
 
       return topic;
