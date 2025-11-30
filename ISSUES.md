@@ -68,3 +68,36 @@
 
 ---
 
+### Issue #7: get_topic Never Returns Body Content ✅
+**Severity**: High  
+**File**: `src/tools/get-topic.ts` (lines 111-116), `src/lib/parser/chunker.ts` (lines 347-369)  
+**Description**: `max_chunks` is passed straight into `limitChunks`, which treats the value as a token budget rather than a chunk count. With the default `max_chunks = 3`, the first chunk usually contains hundreds of tokens, so `totalTokens + chunkTokens > maxTokens` evaluates true and the loop breaks before any chunk is pushed. This means every call returns an empty `body_chunks` array, defeating the main purpose of the tool.
+
+**Fix**: Use a simple slice when the user constrains by chunk count, or convert the chunk count into an appropriate token budget (e.g., `limitChunks(chunks, max_chunks * averageChunkTokens)`).
+
+**Status**: ✅ Fixed - Changed from `limitChunks()` (token budget) to `slice(0, maxChunks)` (chunk count) to correctly limit by number of chunks rather than token budget.
+
+---
+
+### Issue #8: URL Lookup Broken Due to Double Path Construction ✅
+**Severity**: High  
+**File**: `src/tools/get-topic.ts` (lines 41-48), `src/lib/providers/online-provider.ts` (lines 60-78)  
+**Description**: Looking up a topic by URL is broken because the normalized topic id is reused as the provider lookup key. `normalizeUrlToTopicId(args.url, args.url)` strips the host and leading slash, so a URL such as `https://www.synergex.com/docs/Language/topic.htm` turns into `docs/Language/topic.htm`. When this string is handed to `OnlineProvider.fetchTopic`, it fails the "already a full URL" and "starts with /" checks, so the provider prepends baseUrl again, producing `https://www.synergex.com/docs/docs/Language/topic.htm` and fetching the wrong page (or a 404).
+
+**Fix**: Keep the original URL for provider fetches and only use the normalized string as the cache/search key.
+
+**Status**: ✅ Fixed - Separated `providerInput` (original URL) from `cacheKey` (normalized ID). Provider now receives the original URL, while cache uses the normalized key.
+
+---
+
+### Issue #9: All Provider Failures Reported as TOPIC_NOT_FOUND ✅
+**Severity**: Medium  
+**File**: `src/tools/get-topic.ts` (lines 93-107)  
+**Description**: All provider failures get reported as `TOPIC_NOT_FOUND`, masking real errors. The catch block in `getTopic` only treats errors whose message contains "fetch" as network issues and otherwise unconditionally returns `topicNotFoundError`. However, provider implementations throw structured `ErrorPayload` objects (e.g., `providerError`, `networkError`), which are not `instanceof Error` and therefore fall through to the "topic not found" branch. Users will see `TOPIC_NOT_FOUND` even for timeouts, parser bugs, or invalid versions, and the retryable flag is lost.
+
+**Fix**: Detect `ErrorPayload` objects (e.g., by checking `code` property) and pass them through or convert them to the appropriate standardized error instead of downgrading everything to "not found."
+
+**Status**: ✅ Fixed - Added check for `ErrorPayload` objects (checking for `code` property) and pass them through directly. This preserves error types, retryable flags, and detailed error information from providers.
+
+---
+

@@ -286,7 +286,13 @@ function extractNavigationLinks(
 /**
  * Normalize URL to topic ID
  */
-function normalizeUrlToTopicId(href: string, baseUrl: string): string {
+/**
+ * Normalize a URL to a topic ID
+ * @param href - The URL or href to normalize
+ * @param baseUrl - The base URL for resolving relative URLs
+ * @returns The normalized topic ID
+ */
+export function normalizeUrlToTopicId(href: string, baseUrl: string): string {
   try {
     const url = new URL(href, baseUrl);
     // Remove base URL to get relative path
